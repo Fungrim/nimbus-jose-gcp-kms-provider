@@ -1,0 +1,49 @@
+plugins {
+    id 'java-library'
+    id 'org.kordamp.gradle.jandex' version '0.11.0'
+    id 'maven-publish'
+}
+
+ext {
+    jupiterVersion = '5.7.2'
+    nimbusVersion = '9.15.2'
+    gcpPlatformVersion = '24.0.0'
+    guavaVersion = '31.0.1-jre'
+}
+
+repositories {
+    mavenCentral()
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+}
+
+dependencies {
+    // internals 
+    api "com.google.guava:guava:${guavaVersion}"
+
+    // nimbus
+    api "com.nimbusds:nimbus-jose-jwt:${nimbusVersion}"
+
+    implementation "org.bouncycastle:bcprov-jdk15on:1.68"
+    implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
+    
+    // gpp kms
+    implementation platform("com.google.cloud:libraries-bom:${gcpPlatformVersion}")
+    api "com.google.cloud:google-cloud-kms"
+
+    // testing
+    testImplementation "org.junit.jupiter:junit-jupiter:${jupiterVersion}"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
