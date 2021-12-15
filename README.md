@@ -18,7 +18,8 @@ KmsKeyHandle handle = provider.find(JWSAlgorithm.ES256);
 
 JWTClaimsSet claims = // ... create claims
 
-// let the handle create the header
+// let the handle create the header, this will set
+// the algorithm and key ID
 JWSHeader header = handle.createHeaderBuilder().build();
 
 // create and sign 
