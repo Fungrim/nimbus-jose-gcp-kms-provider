@@ -2,7 +2,7 @@
 This library provides JWS utilities for Nimbus JOSE (https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS. 
 
 ## secp256k1 support
-Note that the EC curve `secp256k1` was removed from disabled Java 15 by Oracle, and Java 16 by OpenJDK. This library retains
+Note that the EC curve `secp256k1` was removed from Java 15 by Oracle, and Java 16 by OpenJDK. This library retains
 the necesarry code, but it is not well tested. 
 
 * Ref: https://bugs.openjdk.java.net/browse/JDK-8251547
