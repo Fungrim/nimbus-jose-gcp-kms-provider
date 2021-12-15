@@ -1,7 +1,6 @@
 package io.github.fungrim.nimbus.gcp.kms;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -19,19 +18,18 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
 import com.nimbusds.jose.crypto.impl.ECDSA;
+import com.nimbusds.jose.crypto.impl.RSASSA;
 import com.nimbusds.jose.util.Base64URL;
 
 public class CryptoKeyVerifier extends BaseJWSProvider implements JWSVerifier {
 
     private final KeyManagementServiceClient client;
     private final CryptoKeyVersion key;
-    private final PublicKey publicKey;
 
     public CryptoKeyVerifier(CryptoKeyVersion key, KeyManagementServiceClient client) throws JOSEException {
         super(Collections.singleton(JwsConversions.getSigningAlgorithm(key)));
         this.client = client;
         this.key = key;
-        this.publicKey = toPublicKey();
     }
 
     @Override
@@ -40,15 +38,15 @@ public class CryptoKeyVerifier extends BaseJWSProvider implements JWSVerifier {
 		if (!supportedJWSAlgorithms().contains(alg)) {
 			throw new JOSEException(AlgorithmSupportMessage.unsupportedJWSAlgorithm(alg, supportedJWSAlgorithms()));
 		}
-        if(alg.getName().startsWith("HS")) {
+        if(JWSAlgorithm.Family.HMAC_SHA.contains(alg)) {
             CryptoKeyVersionName keyName = CryptoKeyVersionName.parse(key.getName());
             MacVerifyResponse response = client.macVerify(keyName, ByteString.copyFrom(signingInput), ByteString.copyFrom(signature.decode()));
             return response.getSuccess();
         } else {
             try {
                 byte[] signatureBytes = signature.decode();
-                Signature sig = Signature.getInstance(JcaConversions.getSignatureAlgorithmName(key));
-                sig.initVerify(this.publicKey);
+                Signature sig = getSignature(alg);
+                sig.initVerify(toPublicKey());
                 sig.update(signingInput);
                 if(JWSAlgorithm.Family.EC.contains(alg)) { 
                     if (ECDSA.getSignatureByteArrayLength(header.getAlgorithm()) != signatureBytes.length) {
@@ -59,9 +57,17 @@ public class CryptoKeyVerifier extends BaseJWSProvider implements JWSVerifier {
                 } else {
                     return sig.verify(signatureBytes);
                 }
-            } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            } catch (InvalidKeyException | SignatureException e) {
                 throw new JOSEException("Failed to create JCA signature", e);
             }
+        }
+    }
+
+    private Signature getSignature(JWSAlgorithm alg) throws JOSEException {
+        if(JWSAlgorithm.Family.EC.contains(alg)) {
+            return ECDSA.getSignerAndVerifier(alg, getJCAContext().getProvider());
+        } else {
+            return RSASSA.getSignerAndVerifier(alg, getJCAContext().getProvider());
         }
     }
 

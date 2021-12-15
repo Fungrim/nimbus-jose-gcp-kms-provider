@@ -1,7 +1,6 @@
 package io.github.fungrim.nimbus.gcp;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +15,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
 
 import io.github.fungrim.nimbus.gcp.kms.CryptoKeySigner;
 import io.github.fungrim.nimbus.gcp.kms.CryptoKeyVerifier;
@@ -93,6 +91,16 @@ public class KmsKeyProvider {
         return toHandle(opt);
     }
 
+    public List<? extends KmsKeyHandle> list() throws JOSEException {
+        return list(k -> true);
+    }
+
+    public List<? extends KmsKeyHandle> list(KeyDiscriminator filter) throws JOSEException {
+        Preconditions.checkNotNull(filter);
+        return accessor.fetchAll(filter, true)
+            .stream().map(k -> new Handle(accessor.getGenerator().getKeyId(k), k)).toList();
+    }
+
     public Optional<KmsKeyHandle> find(KeyDiscriminator filter) throws JOSEException {
         Preconditions.checkNotNull(filter);
         Optional<CryptoKeyVersionName> opt = accessor.fetchLatest(filter);
@@ -106,19 +114,6 @@ public class KmsKeyProvider {
             CryptoKeyVersion k = accessor.get(opt.get());
             return Optional.of(new Handle(accessor.getGenerator().getKeyId(k), k));
         }
-    }
-
-    public JWKSet getAll() throws JOSEException {
-        return getAll(k -> true);
-    }
-
-    public JWKSet getAll(KeyDiscriminator filter) throws JOSEException {
-        Preconditions.checkNotNull(filter);
-        List<JWK> list = new ArrayList<>();
-        for (CryptoKeyVersion v : accessor.fetchAll(filter, true)) {
-            list.add(accessor.getPublicKeyJwk(accessor.getGenerator().getKeyId(v), v));
-        }
-        return new JWKSet(list);
     }
 
     private class Handle implements KmsKeyHandle {
@@ -137,6 +132,11 @@ public class KmsKeyProvider {
         }
 
         @Override
+        public JWSAlgorithm getAlgorithm() throws JOSEException {
+            return JwsConversions.getSigningAlgorithm(key);
+        }
+
+        @Override
         public JWSSigner getSigner() throws JOSEException {
             return new CryptoKeySigner(key, accessor.getClient());
         }
@@ -148,7 +148,12 @@ public class KmsKeyProvider {
 
         @Override
         public JWSHeader.Builder createHeaderBuilder() throws JOSEException {
-            return new JWSHeader.Builder(JwsConversions.getSigningAlgorithm(key)).keyID(id);
+            return new JWSHeader.Builder(getAlgorithm()).keyID(id);
+        }
+
+        @Override
+        public Optional<JWK> getPublicKey() throws JOSEException {
+            return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm()) ? Optional.empty() : Optional.of(accessor.getPublicKeyJwk(getKeyId()));
         }
     }
 }
