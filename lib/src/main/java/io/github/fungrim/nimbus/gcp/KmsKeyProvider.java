@@ -16,11 +16,12 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jwk.JWK;
 
+import io.github.fungrim.nimbus.gcp.kms.Algorithms;
 import io.github.fungrim.nimbus.gcp.kms.CryptoKeySigner;
 import io.github.fungrim.nimbus.gcp.kms.CryptoKeyVerifier;
-import io.github.fungrim.nimbus.gcp.kms.JwsConversions;
 import io.github.fungrim.nimbus.gcp.kms.Sha256KeyIdGenerator;
 import io.github.fungrim.nimbus.gcp.kms.SigningKeyRingAccessor;
+import io.github.fungrim.nimbus.gcp.kms.client.DefaultKmsServiceClient;
 
 public class KmsKeyProvider {
 
@@ -57,7 +58,7 @@ public class KmsKeyProvider {
             KeyIdGenerator generator = gen == null ? new Sha256KeyIdGenerator() : gen;
             Duration duration = dur == null ? Duration.ofMinutes(60) : dur;
             SigningKeyRingAccessor accessor = new SigningKeyRingAccessor(keyRing, client, generator, discriminator, duration);
-            return new KmsKeyProvider(accessor);
+            return new KmsKeyProvider(keyRing, client, accessor, discriminator);
         }
     } 
 
@@ -67,9 +68,15 @@ public class KmsKeyProvider {
         return new Builder(client, keyRing);
     }
 
-    private SigningKeyRingAccessor accessor;
+    private final KeyRingName keyRing;
+    private final KeyManagementServiceClient client;
+    private final SigningKeyRingAccessor accessor;
+    private final KeyDiscriminator keyRingDiscriminator;
 
-    private KmsKeyProvider(SigningKeyRingAccessor accessor) {
+    private KmsKeyProvider(KeyRingName keyRing, KeyManagementServiceClient client, SigningKeyRingAccessor accessor, KeyDiscriminator keyRingDiscriminator) {
+        this.keyRingDiscriminator = keyRingDiscriminator;
+        this.keyRing = keyRing;
+        this.client = client;
         this.accessor = accessor;
     }
  
@@ -133,7 +140,7 @@ public class KmsKeyProvider {
 
         @Override
         public JWSAlgorithm getAlgorithm() throws JOSEException {
-            return JwsConversions.getSigningAlgorithm(key);
+            return Algorithms.getSigningAlgorithm(key);
         }
 
         @Override
@@ -143,7 +150,7 @@ public class KmsKeyProvider {
 
         @Override
         public JWSVerifier getVerifier() throws JOSEException {
-            return new CryptoKeyVerifier(key, accessor.getClient());
+            return new CryptoKeyVerifier(key, new DefaultKmsServiceClient(client, keyRing, keyRingDiscriminator));
         }
 
         @Override

@@ -23,9 +23,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
-public class JwsConversions {
+public class Algorithms {
     
-    private JwsConversions() { }
+    private Algorithms() { }
 
     public static byte[] digest(byte[] cleartext, JWSAlgorithm a) throws JOSEException {
         try {
@@ -35,6 +35,10 @@ public class JwsConversions {
         } catch(NoSuchAlgorithmException e) {
             throw new JOSEException(e.getMessage(), e);
         }
+    }
+
+    public static boolean isHmac(JWSAlgorithm alg) {
+        return JWSAlgorithm.Family.HMAC_SHA.contains(alg);
     }
 
     public static MessageDigest getDigestForAlgorithm(JWSAlgorithm a) throws NoSuchAlgorithmException {
@@ -143,7 +147,7 @@ public class JwsConversions {
     }
 
     public static JWK toPublicKeyJWK(CryptoKeyVersion key, String keyId, byte[] pemBytes) throws JOSEException {
-        return toPublicKeyJWK(key, keyId, JwsConversions.toPublicKey(key, pemBytes));
+        return toPublicKeyJWK(key, keyId, Algorithms.toPublicKey(key, pemBytes));
     }
 
     public static JWK toPublicKeyJWK(CryptoKeyVersion key, String keyId, PublicKey pkey) throws JOSEException {

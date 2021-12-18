@@ -69,7 +69,7 @@ public class SigningKeyRingAccessor {
     public JWK getPublicKeyJwk(String keyId, CryptoKeyVersion key) throws JOSEException {
         PublicKey publicKey = client.getPublicKey(CryptoKeyVersionName.parse(key.getName()));
         byte[] pem = publicKey.getPemBytes().toByteArray();
-        return JwsConversions.toPublicKeyJWK(key, keyId, pem);
+        return Algorithms.toPublicKeyJWK(key, keyId, pem);
     }
 
     public JWK getPublicKeyJwk(CryptoKeyVersionName keyName) throws JOSEException {
@@ -99,7 +99,7 @@ public class SigningKeyRingAccessor {
     public Optional<CryptoKeyVersionName> fetchLatest(JWSAlgorithm alg) {
         return fetchLatest(k -> {
             try {
-                return alg == JwsConversions.getSigningAlgorithm(k);
+                return alg == Algorithms.getSigningAlgorithm(k);
             } catch (JOSEException e) {
                 return false;
             }

@@ -42,6 +42,7 @@ dependencies {
 
     // testing
     testImplementation "org.junit.jupiter:junit-jupiter:${jupiterVersion}"
+    testImplementation 'org.mockito:mockito-core:4.2.0'
 }
 
 tasks.named('test') {

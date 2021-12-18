@@ -22,7 +22,7 @@ public class CryptoKeySigner extends BaseJWSProvider implements JWSSigner {
     private final CryptoKeyVersion key;
 
     public CryptoKeySigner(CryptoKeyVersion key, KeyManagementServiceClient client) throws JOSEException {
-        super(Collections.singleton(JwsConversions.getSigningAlgorithm(key)));
+        super(Collections.singleton(Algorithms.getSigningAlgorithm(key)));
         this.client = client;
         this.key = key;
     }
@@ -38,7 +38,7 @@ public class CryptoKeySigner extends BaseJWSProvider implements JWSSigner {
             byte[] byteArray = client.macSign(keyName, ByteString.copyFrom(signingInput)).getMac().toByteArray();
             return Base64URL.encode(byteArray);
         } else {
-            byte[] digestBytes = JwsConversions.digest(signingInput, alg);
+            byte[] digestBytes = Algorithms.digest(signingInput, alg);
             Digest digest = createDigest(digestBytes, alg);
             byte[] ciphertext = client.asymmetricSign(keyName, digest).getSignature().toByteArray();
             if(JWSAlgorithm.Family.EC.contains(alg)) {
