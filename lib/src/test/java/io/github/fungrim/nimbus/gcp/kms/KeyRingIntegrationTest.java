@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Assertions;
 
 import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
 import io.github.fungrim.nimbus.gcp.KmsKeyHandle;
-import io.github.fungrim.nimbus.gcp.KmsKeyProvider;
+import io.github.fungrim.nimbus.gcp.KmsKeyHandleFactory;
 import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
 
 public class KeyRingIntegrationTest {
@@ -29,7 +29,7 @@ public class KeyRingIntegrationTest {
         KeyIdGenerator gen = new Sha256KeyIdGenerator();
         Predicate<CryptoKeyVersion> filter = (k) -> true;
         try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
-            KmsKeyProvider provider = KmsKeyProvider.builder(client, ring)
+            KmsKeyHandleFactory provider = KmsKeyHandleFactory.builder(client, ring)
                 .withKeyCacheDuration(Duration.ofSeconds(60))
                 .withKeyRingFilter(filter)
                 .withKeyIdGenerator(gen)

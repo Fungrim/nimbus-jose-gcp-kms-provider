@@ -8,7 +8,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 
-import io.github.fungrim.nimbus.gcp.UncheckedJoseException;
+import io.github.fungrim.nimbus.gcp.jose.UncheckedJoseException;
 
 public class Algorithms {
     
