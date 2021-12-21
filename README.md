@@ -6,7 +6,7 @@ This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/conn
 ```java
 KeyManagementServiceClient client = ... // you create your own client
 String keyRingResourceName = ... // this library operates on a single key ring
-KmsKeyProvider provider = KmsKeyProvider.builder(client, KeyRingName.parse(keyRingResourceName))
+KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
                 .withKeyCacheDuration(Duration.ofSeconds(60))
                 .build();
 
@@ -14,7 +14,7 @@ KmsKeyProvider provider = KmsKeyProvider.builder(client, KeyRingName.parse(keyRi
 // by a key version resource name, but below we don't care and ask
 // for a key by algorithm - the provider will pick the a matching key and
 // the latest version
-KmsKeyHandle handle = provider.find(JWSAlgorithm.ES256);
+KmsKeyHandle handle = factory.find(JWSAlgorithm.ES256);
 
 JWTClaimsSet claims = // ... create claims
 
