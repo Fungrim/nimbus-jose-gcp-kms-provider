@@ -1,8 +1,7 @@
-package io.github.fungrim.nimbus.gcp.kms;
+package io.github.fungrim.nimbus.gcp.kms.provider;
 
 import java.util.Collections;
 
-import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.common.base.Preconditions;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -10,19 +9,20 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
 
+import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
 import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
 
 public abstract class BaseCryptoKeyProvider extends BaseJWSProvider {
     
     protected final KmsServiceClient client;
-    protected final CryptoKeyVersion key;
+    protected final Entry entry;
 
-    public BaseCryptoKeyProvider(CryptoKeyVersion key, KmsServiceClient client) throws JOSEException {
-        super(Collections.singleton(Algorithms.getSigningAlgorithm(key)));
+    protected BaseCryptoKeyProvider(Entry entry, KmsServiceClient client) throws JOSEException {
+        super(Collections.singleton(entry.getAlgorithm()));
         Preconditions.checkNotNull(client);
-        Preconditions.checkNotNull(key);
+        Preconditions.checkNotNull(entry);
         this.client = client;
-        this.key = key;
+        this.entry = entry;
     }
 
     protected JWSAlgorithm extractAndVerifyAlgorithm(JWSHeader header) throws JOSEException {

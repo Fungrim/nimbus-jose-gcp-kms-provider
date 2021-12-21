@@ -4,7 +4,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.function.Predicate;
 
+import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.kms.v1.KeyRingName;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -15,29 +17,28 @@ import com.nimbusds.jwt.SignedJWT;
 
 import org.junit.jupiter.api.Assertions;
 
-import io.github.fungrim.nimbus.gcp.KeyDiscriminator;
 import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
 import io.github.fungrim.nimbus.gcp.KmsKeyHandle;
 import io.github.fungrim.nimbus.gcp.KmsKeyProvider;
+import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
 
 public class KeyRingIntegrationTest {
     
     public static void main(String[] args) throws Exception {
         KeyRingName ring = KeyRingName.parse(args[0]);
         KeyIdGenerator gen = new Sha256KeyIdGenerator();
-        KeyDiscriminator disc = (k) -> true;
+        Predicate<CryptoKeyVersion> filter = (k) -> true;
         try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
             KmsKeyProvider provider = KmsKeyProvider.builder(client, ring)
                 .withKeyCacheDuration(Duration.ofSeconds(60))
-                .withKeyDiscriminator(disc)
+                .withKeyRingFilter(filter)
                 .withKeyIdGenerator(gen)
                 .build();
 
-            for (KmsKeyHandle h : provider.list()) {
+            for (KmsKeyHandle h : provider.list().toList()) {
                 if(h.getAlgorithm() == JWSAlgorithm.ES256K) {
                     continue;
                 }
-
                 testSignedJWT(h);
                 testSignedJWS(h);
             }

@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms;
+package io.github.fungrim.nimbus.gcp.kms.generator;
 
 import java.nio.charset.StandardCharsets;
 

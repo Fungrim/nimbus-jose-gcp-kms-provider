@@ -1,8 +1,9 @@
 package io.github.fungrim.nimbus.gcp;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.cloud.kms.v1.CryptoKeyVersionName;
@@ -16,19 +17,20 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jwk.JWK;
 
-import io.github.fungrim.nimbus.gcp.kms.Algorithms;
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeySigner;
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyVerifier;
-import io.github.fungrim.nimbus.gcp.kms.Sha256KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.kms.SigningKeyRingAccessor;
+import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache;
+import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
 import io.github.fungrim.nimbus.gcp.kms.client.DefaultKmsServiceClient;
+import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
+import io.github.fungrim.nimbus.gcp.kms.provider.CryptoKeySigner;
+import io.github.fungrim.nimbus.gcp.kms.provider.CryptoKeyVerifier;
 
 public class KmsKeyProvider {
 
     public static class Builder {
 
         private KeyManagementServiceClient client;
-        private KeyDiscriminator disc;
+        private Predicate<CryptoKeyVersion> disc;
         private KeyIdGenerator gen;
         private Duration dur;
         private KeyRingName keyRing;
@@ -38,7 +40,7 @@ public class KmsKeyProvider {
             this.keyRing = keyRing;
         }
 
-        public Builder withKeyDiscriminator(KeyDiscriminator disc) {
+        public Builder withKeyRingFilter(Predicate<CryptoKeyVersion> disc) {
             this.disc = disc;
             return this;
         }
@@ -54,11 +56,12 @@ public class KmsKeyProvider {
         }
 
         public KmsKeyProvider build() throws JOSEException {
-            KeyDiscriminator discriminator = disc == null ? k -> true : disc;
+            Predicate<CryptoKeyVersion> filter = disc == null ? k -> true : disc;
             KeyIdGenerator generator = gen == null ? new Sha256KeyIdGenerator() : gen;
             Duration duration = dur == null ? Duration.ofMinutes(60) : dur;
-            SigningKeyRingAccessor accessor = new SigningKeyRingAccessor(keyRing, client, generator, discriminator, duration);
-            return new KmsKeyProvider(keyRing, client, accessor, discriminator);
+            KmsServiceClient kmsClient = new DefaultKmsServiceClient(client, keyRing, filter);
+            CryptoKeyCache cache = new CryptoKeyCache(duration, kmsClient, generator);
+            return new KmsKeyProvider(kmsClient, cache);
         }
     } 
 
@@ -68,99 +71,81 @@ public class KmsKeyProvider {
         return new Builder(client, keyRing);
     }
 
-    private final KeyRingName keyRing;
-    private final KeyManagementServiceClient client;
-    private final SigningKeyRingAccessor accessor;
-    private final KeyDiscriminator keyRingDiscriminator;
+    private final KmsServiceClient client;
+    private final CryptoKeyCache cache;
 
-    private KmsKeyProvider(KeyRingName keyRing, KeyManagementServiceClient client, SigningKeyRingAccessor accessor, KeyDiscriminator keyRingDiscriminator) {
-        this.keyRingDiscriminator = keyRingDiscriminator;
-        this.keyRing = keyRing;
+    private KmsKeyProvider(
+            KmsServiceClient client, 
+            CryptoKeyCache cache) {
         this.client = client;
-        this.accessor = accessor;
+        this.cache = cache;
     }
  
-    public KmsKeyHandle get(CryptoKeyVersionName name) throws JOSEException {
+    public Optional<KmsKeyHandle> get(CryptoKeyVersionName name) throws JOSEException {
         Preconditions.checkNotNull(name);
-        CryptoKeyVersion key = accessor.get(name);
-        return new Handle(accessor.getGenerator().getKeyId(key), key);
+        return cache.get(name).map(this::toHandle);
     }
 
-    public KmsKeyHandle get(String keyId) throws JOSEException {
+    public Optional<KmsKeyHandle> get(String keyId) throws JOSEException {
         Preconditions.checkNotNull(keyId);
-        CryptoKeyVersion key = accessor.resolve(keyId);
-        return new Handle(accessor.getGenerator().getKeyId(key), key);
+        return cache.find(keyId).map(this::toHandle);
     }
 
     public Optional<KmsKeyHandle> find(JWSAlgorithm alg) throws JOSEException {
         Preconditions.checkNotNull(alg);
-        Optional<CryptoKeyVersionName> opt = accessor.fetchLatest(alg);
-        return toHandle(opt);
+        return cache.find(alg).map(this::toHandle);
     }
 
-    public List<? extends KmsKeyHandle> list() throws JOSEException {
+    public Stream<KmsKeyHandle> list() throws JOSEException {
         return list(k -> true);
     }
 
-    public List<? extends KmsKeyHandle> list(KeyDiscriminator filter) throws JOSEException {
+    public Stream<KmsKeyHandle> list(Predicate<CryptoKeyVersion> filter) throws JOSEException {
         Preconditions.checkNotNull(filter);
-        return accessor.fetchAll(filter, true)
-            .stream().map(k -> new Handle(accessor.getGenerator().getKeyId(k), k)).toList();
+        return cache.list(filter).map(this::toHandle);
     }
 
-    public Optional<KmsKeyHandle> find(KeyDiscriminator filter) throws JOSEException {
-        Preconditions.checkNotNull(filter);
-        Optional<CryptoKeyVersionName> opt = accessor.fetchLatest(filter);
-        return toHandle(opt);
+    private KmsKeyHandle toHandle(Entry e) {
+        return new Handle(e);
     }
-
-    private Optional<KmsKeyHandle> toHandle(Optional<CryptoKeyVersionName> opt) throws JOSEException {
-        if(opt.isEmpty()) {
-            return Optional.empty();
-        } else {
-            CryptoKeyVersion k = accessor.get(opt.get());
-            return Optional.of(new Handle(accessor.getGenerator().getKeyId(k), k));
-        }
-    }
-
     private class Handle implements KmsKeyHandle {
 
-        private final String id;
-        private final CryptoKeyVersion key;
+        private final Entry entry;
     
-        private Handle(String id, CryptoKeyVersion key) {
-            this.id = id;
-            this.key = key;
+        private Handle(Entry entry) {
+            this.entry = entry;
         }
 
         @Override
         public String getKeyId() {
-            return id;
+            return entry.getKeyId();
         }
 
         @Override
         public JWSAlgorithm getAlgorithm() throws JOSEException {
-            return Algorithms.getSigningAlgorithm(key);
+            return entry.getAlgorithm();
         }
 
         @Override
         public JWSSigner getSigner() throws JOSEException {
-            return new CryptoKeySigner(key, accessor.getClient());
+            return new CryptoKeySigner(entry, client);
         }
 
         @Override
         public JWSVerifier getVerifier() throws JOSEException {
-            return new CryptoKeyVerifier(key, new DefaultKmsServiceClient(client, keyRing, keyRingDiscriminator));
+            return new CryptoKeyVerifier(entry, client);
         }
 
         @Override
         public JWSHeader.Builder createHeaderBuilder() throws JOSEException {
-            return new JWSHeader.Builder(getAlgorithm()).keyID(id);
+            return new JWSHeader.Builder(getAlgorithm()).keyID(entry.getKeyId());
         }
 
         @Override
         public Optional<JWK> getPublicKey() throws JOSEException {
-            return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm()) ? Optional.empty() : Optional.of(accessor.getPublicKeyJwk(getKeyId()));
+            return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm()) 
+                        ? Optional.empty() 
+                        : Optional.of(entry.getPublicKeyJWK(client));
         }
     }
 }

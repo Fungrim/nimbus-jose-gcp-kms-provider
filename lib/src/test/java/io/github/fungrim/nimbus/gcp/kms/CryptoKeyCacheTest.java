@@ -2,19 +2,22 @@ package io.github.fungrim.nimbus.gcp.kms;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.google.cloud.kms.v1.CryptoKeyVersion;
+import com.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm;
 import com.google.cloud.kms.v1.CryptoKeyVersionName;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import io.github.fungrim.nimbus.gcp.KeyDiscriminator;
 import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
 import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
 import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
+import io.github.fungrim.nimbus.gcp.kms.util.Keys;
 
 public class CryptoKeyCacheTest {
     
@@ -24,8 +27,8 @@ public class CryptoKeyCacheTest {
 
     @Test
     public void shouldPropagateRemoval() {
-        CryptoKeyVersionName name = CryptoKeys.parseVersionName(KEY_VERSION_NAME);
-        Entry entry = new Entry(null, name, idGenerator.getKeyId(name)); 
+        CryptoKeyVersionName name = Keys.parseVersionName(KEY_VERSION_NAME);
+        Entry entry = new Entry(null, name, idGenerator.getKeyId(name), null); 
         CryptoKeyCache cache = new CryptoKeyCache(Duration.ofDays(1), Mockito.mock(KmsServiceClient.class), idGenerator);
         cache.getEntryCache().put(name, entry);
         cache.getKeyIdCache().put(entry.getKeyId(), entry);
@@ -35,12 +38,12 @@ public class CryptoKeyCacheTest {
 
     @Test
     public void shouldFindKeyFromKeyRing() {
-        CryptoKeyVersionName name = CryptoKeys.parseVersionName(KEY_VERSION_NAME);
-        CryptoKeyVersion key = CryptoKeyVersion.newBuilder().setName(name.toString()).build();
+        CryptoKeyVersionName name = Keys.parseVersionName(KEY_VERSION_NAME);
+        CryptoKeyVersion key = CryptoKeyVersion.newBuilder().setAlgorithm(CryptoKeyVersionAlgorithm.EC_SIGN_P256_SHA256).setName(name.toString()).build();
         KmsServiceClient client = Mockito.mock(KmsServiceClient.class);
         Mockito.when(client.list(Mockito.any())).thenAnswer(c -> {
-            KeyDiscriminator d = c.getArgument(0);
-            if(d.accept(key)) {
+            Predicate<CryptoKeyVersion> filter = c.getArgument(0);
+            if(filter.test(key)) {
                 return Stream.of(key);
             } else {
                 return Stream.of();

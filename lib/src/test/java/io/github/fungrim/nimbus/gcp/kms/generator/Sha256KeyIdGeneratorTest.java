@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms;
+package io.github.fungrim.nimbus.gcp.kms.generator;
 
 import com.google.cloud.kms.v1.CryptoKeyVersionName;
 
