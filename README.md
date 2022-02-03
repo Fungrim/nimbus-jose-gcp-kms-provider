@@ -3,58 +3,26 @@ This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/conn
 
 You create a `KmsKeyHandleFactory` configured with a KMS client and the name of a key ring. You can then query the key ring via the factory for keys represented by `KmsKeyHandle` objects, and in turn can create Numbus signers and verifiers for JWS objects.
 
-## TL;DR
+* The current version is: **1.0.0**
 
-```java
-KeyManagementServiceClient client = ... // you create your own client
-String keyRingResourceName = ... // this library operates on a single key ring
-KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
-                .withKeyCacheDuration(Duration.ofSeconds(60))
-                .build();
+## Documentation
+Published here: https://fungrim.github.io/nimbus-jose-gcp-kms-provider/
 
-// there's several ways of getting hold of a key, for example
-// by a key version resource name, but below we don't care and ask
-// for a key by algorithm - the provider will pick the a matching key and
-// the latest version
-KmsKeyHandle handle = factory.find(JWSAlgorithm.ES256);
+## Dependencies
+This library depends on the GCP platform version `24.0.0`, Guava `31.0.1-jre` `bcprov-jdk15on:1.68` and `bcpkix-jdk15on:1.68`, and Nimbus JOSE `9.15.2`. 
 
-JWTClaimsSet claims = // ... create claims
+### Maven
 
-// let the handle create the header, this will set
-// the algorithm and key ID
-JWSHeader header = handle.createHeaderBuilder().build();
-
-// create and sign 
-SignedJWT jwt = new SignedJWT(header, claims);
-jwt.sign(handler.getSigner());
-
-// you can of course parse and verify
-String token = jwt.serialize();
-SignedJWT parsed = SignedJWT.parse(token);
-if(!partsed.verify(handler.getVerifier())) {
-  // help! help!
-}
+```xml
+<dependency>
+  <groupId>io.github.fungrim.nimbus</groupId>
+  <artifactId>gcp-kms-nimbus-provider</artifactId>
+  <version>1.0.0</version>
+</dependency>
 ```
 
-## Algorithm support
-All keys for asymmetric signing in GCP KMS are supported - with the exception of `secp256k1`, see below - as well as HMAC signing. 
+### Gradle
 
-* EC P256 / SHA256
-* EC P384 / SHA384
-* EC secp256k1 / SHA256 (see below)
-* RSA 2048 PKCS#1 / SHA256
-* RSA 3072 PKCS#1 / SHA256
-* RSA 4096 PKCS#1 / SHA256
-* RSA 4096 PKCS#1 / SHA512
-* RSA 2048 PSS / SHA256
-* RSA 3072 PSS / SHA256
-* RSA 4096 PSS / SHA256
-* RSA 4096 PSS / SHA512
-* HMAC / SHA256
-
-### secp256k1
-Note that the EC curve `secp256k1` was removed from Java 15 by Oracle, and Java 16 by OpenJDK. This library retains
-the necesarry code, but it is not well tested. 
-
-* Ref: https://bugs.openjdk.java.net/browse/JDK-8251547
-* Ref: https://www.oracle.com/java/technologies/javase/15-relnote-issues.html#JDK-8237219
+```
+implementation 'io.github.fungrim.nimbus:gcp-kms-nimbus-provider:1.0.0'
+```
