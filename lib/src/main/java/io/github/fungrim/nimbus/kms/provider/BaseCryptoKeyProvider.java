@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.provider;
+package io.github.fungrim.nimbus.kms.provider;
 
 import java.util.Collections;
 
@@ -9,15 +9,15 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
 
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.CryptoKeyCache;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
 
 public abstract class BaseCryptoKeyProvider extends BaseJWSProvider {
     
     protected final KmsServiceClient client;
-    protected final Entry entry;
+    protected final CryptoKeyCache.Entry entry;
 
-    protected BaseCryptoKeyProvider(Entry entry, KmsServiceClient client) throws JOSEException {
+    protected BaseCryptoKeyProvider(CryptoKeyCache.Entry entry, KmsServiceClient client) throws JOSEException {
         super(Collections.singleton(entry.getAlgorithm()));
         Preconditions.checkNotNull(client);
         Preconditions.checkNotNull(entry);

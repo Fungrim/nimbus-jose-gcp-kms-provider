@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms;
+package io.github.fungrim.nimbus.kms;
 
 import java.security.PublicKey;
 import java.time.Duration;
@@ -24,10 +24,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 
-import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.util.Algorithms;
-import io.github.fungrim.nimbus.gcp.kms.util.Keys;
+import io.github.fungrim.nimbus.KeyIdGenerator;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.util.Algorithms;
+import io.github.fungrim.nimbus.kms.util.Keys;
 
 public class CryptoKeyCache {
     

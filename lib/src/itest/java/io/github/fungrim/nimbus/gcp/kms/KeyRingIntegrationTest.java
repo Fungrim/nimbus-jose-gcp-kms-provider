@@ -18,10 +18,10 @@ import com.nimbusds.jwt.SignedJWT;
 
 import org.junit.jupiter.api.Assertions;
 
-import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.KmsKeyHandle;
-import io.github.fungrim.nimbus.gcp.KmsKeyHandleFactory;
-import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
+import io.github.fungrim.nimbus.KeyIdGenerator;
+import io.github.fungrim.nimbus.KmsKeyHandle;
+import io.github.fungrim.nimbus.KmsKeyHandleFactory;
+import io.github.fungrim.nimbus.kms.generator.Sha256KeyIdGenerator;
 
 /**
  * This integration test must be run manually with a GCP application credentials. It also 

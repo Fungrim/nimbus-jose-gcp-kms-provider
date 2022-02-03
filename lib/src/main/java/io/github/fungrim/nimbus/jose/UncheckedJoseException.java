@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.jose;
+package io.github.fungrim.nimbus.jose;
 
 import com.nimbusds.jose.JOSEException;
 

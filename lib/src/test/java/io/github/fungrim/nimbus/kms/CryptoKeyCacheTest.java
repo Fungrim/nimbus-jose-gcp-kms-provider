@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms;
+package io.github.fungrim.nimbus.kms;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -13,11 +13,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import io.github.fungrim.nimbus.gcp.KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.kms.util.Keys;
+import io.github.fungrim.nimbus.KeyIdGenerator;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.generator.Sha256KeyIdGenerator;
+import io.github.fungrim.nimbus.kms.util.Keys;
 
 public class CryptoKeyCacheTest {
     
@@ -28,7 +27,7 @@ public class CryptoKeyCacheTest {
     @Test
     public void shouldPropagateRemoval() {
         CryptoKeyVersionName name = Keys.parseVersionName(KEY_VERSION_NAME);
-        Entry entry = new Entry(null, name, idGenerator.getKeyId(name), null); 
+        CryptoKeyCache.Entry entry = new CryptoKeyCache.Entry(null, name, idGenerator.getKeyId(name), null); 
         CryptoKeyCache cache = new CryptoKeyCache(Duration.ofDays(1), Mockito.mock(KmsServiceClient.class), idGenerator);
         cache.getEntryCache().put(name, entry);
         cache.getKeyIdCache().put(entry.getKeyId(), entry);
@@ -50,7 +49,7 @@ public class CryptoKeyCacheTest {
             }
         });
         CryptoKeyCache cache = new CryptoKeyCache(Duration.ofDays(1), client, idGenerator);
-        Optional<Entry> entry = cache.find(idGenerator.getKeyId(name));
+        Optional<CryptoKeyCache.Entry> entry = cache.find(idGenerator.getKeyId(name));
         Assertions.assertTrue(entry.isPresent());
         Assertions.assertEquals(1,  cache.getKeyIdCache().size());
         Assertions.assertEquals(1,  cache.getEntryCache().size());

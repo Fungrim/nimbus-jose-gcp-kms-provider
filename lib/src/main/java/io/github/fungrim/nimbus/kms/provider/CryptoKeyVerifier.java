@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.provider;
+package io.github.fungrim.nimbus.kms.provider;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -14,13 +14,13 @@ import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.crypto.impl.RSASSA;
 import com.nimbusds.jose.util.Base64URL;
 
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.util.Algorithms;
+import io.github.fungrim.nimbus.kms.CryptoKeyCache;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.util.Algorithms;
 
 public class CryptoKeyVerifier extends BaseCryptoKeyProvider implements JWSVerifier {
 
-    public CryptoKeyVerifier(Entry entry, KmsServiceClient client) throws JOSEException {
+    public CryptoKeyVerifier(CryptoKeyCache.Entry entry, KmsServiceClient client) throws JOSEException {
         super(entry, client);
     }
 

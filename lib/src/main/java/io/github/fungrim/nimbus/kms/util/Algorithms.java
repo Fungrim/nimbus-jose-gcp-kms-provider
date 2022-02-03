@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.util;
+package io.github.fungrim.nimbus.kms.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -8,7 +8,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 
-import io.github.fungrim.nimbus.gcp.jose.UncheckedJoseException;
+import io.github.fungrim.nimbus.jose.UncheckedJoseException;
 
 public class Algorithms {
     

@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.util;
+package io.github.fungrim.nimbus.kms.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

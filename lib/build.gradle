@@ -29,6 +29,15 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
     withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
 }
 
 dependencies {
@@ -48,8 +57,16 @@ dependencies {
     // testing
     testImplementation "org.junit.jupiter:junit-jupiter:${jupiterVersion}"
     testImplementation 'org.mockito:mockito-core:4.2.0'
+
+    // itest
+    itestImplementation "org.junit.jupiter:junit-jupiter:${jupiterVersion}"
+    itestImplementation 'org.mockito:mockito-core:4.2.0'
 }
 
 tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('itest') {
     useJUnitPlatform()
 }

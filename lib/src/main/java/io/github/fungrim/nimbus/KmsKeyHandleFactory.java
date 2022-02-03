@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp;
+package io.github.fungrim.nimbus;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -17,13 +17,13 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jwk.JWK;
 
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache;
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
-import io.github.fungrim.nimbus.gcp.kms.client.DefaultKmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.generator.Sha256KeyIdGenerator;
-import io.github.fungrim.nimbus.gcp.kms.provider.CryptoKeySigner;
-import io.github.fungrim.nimbus.gcp.kms.provider.CryptoKeyVerifier;
+import io.github.fungrim.nimbus.kms.CryptoKeyCache;
+import io.github.fungrim.nimbus.kms.CryptoKeyCache.Entry;
+import io.github.fungrim.nimbus.kms.client.DefaultKmsServiceClient;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.generator.Sha256KeyIdGenerator;
+import io.github.fungrim.nimbus.kms.provider.CryptoKeySigner;
+import io.github.fungrim.nimbus.kms.provider.CryptoKeyVerifier;
 
 /**
  * This is the main key accessor for the KMS providers. Create a new factory

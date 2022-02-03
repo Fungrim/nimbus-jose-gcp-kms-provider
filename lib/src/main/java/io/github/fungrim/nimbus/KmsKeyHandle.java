@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp;
+package io.github.fungrim.nimbus;
 
 import java.util.Optional;
 

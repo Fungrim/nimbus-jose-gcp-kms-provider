@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.provider;
+package io.github.fungrim.nimbus.kms.provider;
 
 import com.google.cloud.kms.v1.CryptoKeyVersionName;
 import com.nimbusds.jose.JOSEException;
@@ -9,13 +9,13 @@ import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.util.Base64URL;
 
-import io.github.fungrim.nimbus.gcp.kms.CryptoKeyCache.Entry;
-import io.github.fungrim.nimbus.gcp.kms.client.KmsServiceClient;
-import io.github.fungrim.nimbus.gcp.kms.util.Algorithms;
+import io.github.fungrim.nimbus.kms.CryptoKeyCache;
+import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
+import io.github.fungrim.nimbus.kms.util.Algorithms;
 
 public class CryptoKeySigner extends BaseCryptoKeyProvider implements JWSSigner {
     
-    public CryptoKeySigner(Entry entry, KmsServiceClient client) throws JOSEException {
+    public CryptoKeySigner(CryptoKeyCache.Entry entry, KmsServiceClient client) throws JOSEException {
         super(entry, client);
     }
 

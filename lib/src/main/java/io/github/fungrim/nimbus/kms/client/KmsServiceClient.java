@@ -1,4 +1,4 @@
-package io.github.fungrim.nimbus.gcp.kms.client;
+package io.github.fungrim.nimbus.kms.client;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
