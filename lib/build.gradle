@@ -65,6 +65,10 @@ publishing {
     }
 }
 
+signing {
+     sign publishing.publications.maven
+}
+
 dependencies {
     // internals 
     api "com.google.guava:guava:${guavaVersion}"
