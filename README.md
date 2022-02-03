@@ -1,5 +1,5 @@
 # Google Cloud KMS provider for Nimbus JOSE
-This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS. In short you can sign and verify JWS objects backed by keys in GCP KMS. You create a `KmsKeyHandleFactory` configured with a KMS client and the name of a key ring. You can then query the key ring via the factory for keys represented by `KmsKeyHandle` objects, and in turn can create Nimbus signers and verifiers for JWS objects.
+This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS: You can sign and verify JWS objects backed by keys in GCP KMS.  
 
 * The current version is: **1.0.0**
 
