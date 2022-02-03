@@ -1,37 +1,91 @@
 # Google Cloud KMS provider for Nimbus JOSE
-This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS. In short you can sign and verify JWS objects backed by keys in GCP KMS.
+This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS. In short you can sign and verify JWS objects backed by keys in GCP KMS. You create a `KmsKeyHandleFactory` configured with a KMS client and the name of a key ring. You can then query the key ring via the factory for keys represented by `KmsKeyHandle` objects, and in turn can create Nimbus signers and verifiers for JWS objects.
+
+* The current version is: **1.0.0**
+
+## Maven
+
+```xml
+<dependency>
+  <groupId>io.github.fungrim.nimbus</groupId>
+  <artifactId>gcp-kms-nimbus-provider</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+## Gradle
+
+```
+implementation 'io.github.fungrim.nimbus:gcp-kms-nimbus-provider:1.0.0'
+```
+
+## Prerequisites
+
+You need to configure the GCP application credentials, e.g.: 
+
+```
+export GOOGLE_APPLICATION_CREDENTIALS=my-sa.json
+```
+
+Create a key ring if you don't already have one, e.g.: 
+
+```
+gcloud kms keyrings create jws-keys --location=us-east1
+```
+
+Create at least one key to use, e.g.: 
+
+```
+gcloud kms keys create jwd-ec-1 \
+   --location=us-east1 \
+   --keyring=jws-keys \
+   --purpose=asymmetric-signing \
+   --default-algorithm=ec-sign-p256-sha256
+```
+
+Make sure you, or the SA you're using, have rights to use the keys, for example via the role `roles/cloudkms.signerVerifier` 
 
 ## TL;DR
 
 ```java
-KeyManagementServiceClient client = ... // you create your own client
-String keyRingResourceName = ... // this library operates on a single key ring
-KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
-                .withKeyCacheDuration(Duration.ofSeconds(60))
-                .build();
+try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
 
-// there's several ways of getting hold of a key, for example
-// by a key version resource name, but below we don't care and ask
-// for a key by algorithm - the provider will pick the a matching key and
-// the latest version
-KmsKeyHandle handle = factory.find(JWSAlgorithm.ES256);
+    // you need the resource ID of the key ring to use
+    String keyRingResourceName = "projects/you-project/locations/europe/keyRings/your-keyring";
+    
+    // the key handle factory is your key access point, and caches keys in memory for you
+    KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
+                    .withKeyCacheDuration(Duration.ofSeconds(60))
+                    .build();
 
-JWTClaimsSet claims = // ... create claims
+    // there's several ways of getting hold of a key, for example
+    // by a key version resource name, but below we don't care and ask
+    // for a key by algorithm - the provider will pick the a matching key and
+    // the latest version
+    KmsKeyHandle handle = factory.find(JWSAlgorithm.ES256);
 
-// let the handle create the header, this will set
-// the algorithm and key ID
-JWSHeader header = handle.createHeaderBuilder().build();
+    // create claims
+    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+            .subject("bob")
+            .issuer("https://www.google.com")
+            .expirationTime(new Date(LocalDateTime.now().plusHours(24).toInstant(ZoneOffset.UTC).toEpochMilli()))
+            .build();
 
-// create and sign 
-SignedJWT jwt = new SignedJWT(header, claims);
-jwt.sign(handler.getSigner());
+    // let the handle create the header, this will set the algorithm and key ID automagically
+    JWSHeader header = handle.createHeaderBuilder().build();
 
-// you can of course parse and verify
-String token = jwt.serialize();
-SignedJWT parsed = SignedJWT.parse(token);
-if(!partsed.verify(handler.getVerifier())) {
-  // help! help!
+    // create and sign 
+    SignedJWT jwt = new SignedJWT(header, claims);
+    jwt.sign(handler.getSigner());
+
+    // verify
+    String token = jwt.serialize();
+    SignedJWT parsed = SignedJWT.parse(token);
+    if(!partsed.verify(handler.getVerifier())) {
+        System.out.println("Help! Help! I'm being repressed!");
+    }
 }
+
 ```
 
 ## Algorithm support
