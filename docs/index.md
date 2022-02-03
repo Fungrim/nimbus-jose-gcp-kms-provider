@@ -3,10 +3,29 @@ This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/conn
 
 ## Prerequisites
 
-* Configure the GCP application credentials, e.g.: `export GOOGLE_APPLICATION_CREDENTIALS=my-sa.json`
-* Create a key ring if you don't already have one, e.g.: `gcloud kms keyrings create jws-keys --location=us-east1`
-* Create at least one key to use, e.g. `gcloud kms keys create jwd-ec-1 --location=us-east1 --keyring=jws-keys --purpose=asymmetric-signing --default-algorithm=ec-sign-p256-sha256`
-* Make sure you, or the SA you're using, have rights to use the keys, for example via the role `roles/cloudkms.signerVerifier` 
+You need to configure the GCP application credentials, e.g.: 
+
+```
+export GOOGLE_APPLICATION_CREDENTIALS=my-sa.json
+```
+
+Create a key ring if you don't already have one, e.g.: 
+
+```
+gcloud kms keyrings create jws-keys --location=us-east1
+```
+
+Create at least one key to use, e.g.: 
+
+```
+gcloud kms keys create jwd-ec-1 \
+   --location=us-east1 \
+   --keyring=jws-keys \
+   --purpose=asymmetric-signing \
+   --default-algorithm=ec-sign-p256-sha256
+```
+
+Make sure you, or the SA you're using, have rights to use the keys, for example via the role `roles/cloudkms.signerVerifier` 
 
 ## TL;DR
 
@@ -14,7 +33,7 @@ This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/conn
 try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
 
     // you need the resource ID of the key ring to use
-    String keyRingResourceName = "projects/you-project-here/locations/europe/keyRings/your-keyring";
+    String keyRingResourceName = "projects/you-project/locations/europe/keyRings/your-keyring";
     
     // the key handle factory is your key access point, and caches keys in memory for you
     KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
