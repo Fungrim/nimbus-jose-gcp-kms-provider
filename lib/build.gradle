@@ -3,6 +3,7 @@ plugins {
     id 'org.kordamp.gradle.jandex' version '0.11.0'
     id 'org.unbroken-dome.test-sets' version '4.0.0'
     id 'maven-publish'
+    id 'signing'
 }
 
 ext {
@@ -51,7 +52,7 @@ publishing {
                     developer {
                         id = 'fungrim'
                         name = 'Lars J. Nilsson'
-                        email = 'contact@larsan.net'
+                        email = 'fungrim+github@gmail.com'
                     }
                 }
                 scm {
