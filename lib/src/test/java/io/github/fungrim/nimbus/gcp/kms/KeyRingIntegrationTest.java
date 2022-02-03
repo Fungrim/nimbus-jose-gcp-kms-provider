@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
@@ -35,7 +36,7 @@ public class KeyRingIntegrationTest {
                 .withKeyIdGenerator(gen)
                 .build();
 
-            for (KmsKeyHandle h : provider.list().toList()) {
+            for (KmsKeyHandle h : provider.list().collect(Collectors.toList())) {
                 if(h.getAlgorithm() == JWSAlgorithm.ES256K) {
                     continue;
                 }

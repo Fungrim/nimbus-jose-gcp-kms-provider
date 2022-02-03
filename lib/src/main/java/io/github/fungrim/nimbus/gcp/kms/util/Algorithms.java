@@ -31,11 +31,11 @@ public class Algorithms {
     public static MessageDigest getDigestForAlgorithm(JWSAlgorithm a) throws NoSuchAlgorithmException {
         String name = a.getName();
         if(name.endsWith("256") || name.endsWith("256K")) {
-            return MessageDigest.getInstance("SHA256");
+            return MessageDigest.getInstance("SHA-256");
         } else if(name.endsWith("384")) {
-            return MessageDigest.getInstance("SHA384");
+            return MessageDigest.getInstance("SHA-384");
         } else if(name.endsWith("512")) {
-            return MessageDigest.getInstance("SHA512");
+            return MessageDigest.getInstance("SHA-512");
         } else {
             throw new NoSuchAlgorithmException("Could not find message digest for algorithm: " + a);
         }
