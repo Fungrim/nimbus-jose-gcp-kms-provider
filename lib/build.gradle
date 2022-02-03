@@ -35,7 +35,31 @@ java {
 publishing {
     publications {
         maven(MavenPublication) {
+            artifactId = 'gcp-kms-nimbus-provider'
             from components.java
+            pom {
+                name = 'GCP KMS Nimbus Provider'
+                description = 'A library that provides JWS signers and verifiers based on Google Cloud KMS for Nimbus JOSE.'
+                url = 'https://fungrim.github.io/nimbus-jose-gcp-kms-provider/'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'fungrim'
+                        name = 'Lars J. Nilsson'
+                        email = 'contact@larsan.net'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/Fungrim/nimbus-jose-gcp-kms-provider.git'
+                    developerConnection = 'scm:git:ssh://github.com/Fungrim/nimbus-jose-gcp-kms-provider.git'
+                    url = 'http://github.com/Fungrim/nimbus-jose-gcp-kms-provider/tree/maste'
+                }
+            }
         }
     }
 }
