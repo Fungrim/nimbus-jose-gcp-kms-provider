@@ -202,7 +202,7 @@ public class KmsKeyHandleFactory {
         }
 
         @Override
-        public JWSAlgorithm getAlgorithm() throws JOSEException {
+        public JWSAlgorithm getAlgorithm()  {
             return entry.getAlgorithm();
         }
 
@@ -226,6 +226,11 @@ public class KmsKeyHandleFactory {
             return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm()) 
                         ? Optional.empty() 
                         : Optional.of(entry.getPublicKeyJWK(client));
+        }
+
+        @Override
+        public boolean hasPublicKey() {
+            return !JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm());
         }
     }
 }

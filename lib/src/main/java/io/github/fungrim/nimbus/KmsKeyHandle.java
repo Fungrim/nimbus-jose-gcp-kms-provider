@@ -39,12 +39,18 @@ public interface KmsKeyHandle {
     /**
      * Get the algorithm this key represents. 
      */
-    public JWSAlgorithm getAlgorithm() throws JOSEException;
+    public JWSAlgorithm getAlgorithm();
 
     /**
      * Get the JCA public key representation of the KMS key, this
      * will return an empty optional for HMAC keys.
      */
     public Optional<JWK> getPublicKey() throws JOSEException;
+
+    /**
+     * Checks if the key has a public JCA representation, this will
+     * return false for HMAC keys.
+     */
+    public boolean hasPublicKey();
 
 }
