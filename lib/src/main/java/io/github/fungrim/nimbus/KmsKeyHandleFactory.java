@@ -155,12 +155,34 @@ public class KmsKeyHandleFactory {
     }
 
     /**
-     * List all keys given an extra filter. 
+     * List all keys given a key version filter.
+     * 
+     * @deprecated Use {@link #listByKeyVersion(Predicate)} instead 
      */
+    @Deprecated
     public Stream<KmsKeyHandle> list(Predicate<CryptoKeyVersion> filter) throws JOSEException {
-        Preconditions.checkNotNull(filter);
-        return cache.list(filter).map(this::toHandle);
+        return listByKeyVersion(filter);
     }
+
+    /**
+     * List all keys given a key version filter.
+     */
+    public Stream<KmsKeyHandle> listByKeyVersion(Predicate<CryptoKeyVersion> filter) throws JOSEException {
+        Preconditions.checkNotNull(filter);
+        return cache.listByKeyVersion(filter).map(this::toHandle);
+    }
+
+    /**
+     * List all keys given an algorithm filter.
+     */
+    public Stream<KmsKeyHandle> listByAlgorithm(Predicate<JWSAlgorithm> filter) throws JOSEException {
+        Preconditions.checkNotNull(filter);
+        return cache.listByAlgorithm(filter).map(this::toHandle);
+    }
+
+    
+
+    /// --- PRIVATE --- ///
 
     private KmsKeyHandle toHandle(Entry e) {
         return new Handle(e);

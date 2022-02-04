@@ -150,7 +150,15 @@ public class CryptoKeyCache {
         }
     }
 
-    public Stream<Entry> list(Predicate<CryptoKeyVersion> filter) {
+    public Stream<Entry> listByAlgorithm(Predicate<JWSAlgorithm> filter) {
+        Preconditions.checkNotNull(filter);
+        // unchecked algorithm extract should be OK here since the client 
+        // already has filtered the keys
+        return client.list(k -> filter.test(Algorithms.getSigningAlgorithmUnchecked(k)))
+            .map(this::keyToEntry);
+    }
+
+    public Stream<Entry> listByKeyVersion(Predicate<CryptoKeyVersion> filter) {
         Preconditions.checkNotNull(filter);
         return client.list(filter)
             .map(this::keyToEntry);
