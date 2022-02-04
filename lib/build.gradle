@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'org.kordamp.gradle.jandex' version '0.11.0'
     id 'org.unbroken-dome.test-sets' version '4.0.0'
+    id 'com.diffplug.spotless' version '6.2.1'
     id 'maven-publish'
     id 'signing'
 }
@@ -11,6 +12,16 @@ ext {
     nimbusVersion = '9.15.2'
     gcpPlatformVersion = '24.0.0'
     guavaVersion = '31.0.1-jre'
+}
+
+spotless {
+  java {
+    eclipse()          
+    importOrder()
+    removeUnusedImports()
+    licenseHeaderFile 'misc/license-header.txt'
+    indentWithSpaces(4)
+  }
 }
 
 testSets {
