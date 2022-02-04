@@ -1,7 +1,7 @@
 # Google Cloud KMS provider for Nimbus JOSE
 This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/connect2id/nimbus-jose-jwt) on top of Google Cloud KMS: You can sign and verify JWS objects backed by keys in GCP KMS. 
 
-* The current version is: **1.0.0**
+* The current version is: **1.0.1**
 
 ## Maven
 
@@ -9,14 +9,14 @@ This library provides JWS utilities for [Nimbus JOSE](https://bitbucket.org/conn
 <dependency>
   <groupId>io.github.fungrim.nimbus</groupId>
   <artifactId>gcp-kms-nimbus-provider</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
 ## Gradle
 
 ```
-implementation 'io.github.fungrim.nimbus:gcp-kms-nimbus-provider:1.0.0'
+implementation 'io.github.fungrim.nimbus:gcp-kms-nimbus-provider:1.0.1'
 ```
 
 ## Prerequisites
@@ -110,3 +110,41 @@ the necesarry code, but it is not well tested.
 
 * Ref: https://bugs.openjdk.java.net/browse/JDK-8251547
 * Ref: https://www.oracle.com/java/technologies/javase/15-relnote-issues.html#JDK-8237219
+
+## How-to: List all keys for a specific JWS algorithm
+
+```java
+try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
+
+    // you need the resource ID of the key ring to use
+    String keyRingResourceName = "projects/you-project/locations/europe/keyRings/your-keyring";
+    
+    // the key handle factory is your key access point, and caches keys in memory for you
+    KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
+                    .withKeyCacheDuration(Duration.ofSeconds(60))
+                    .build();
+
+    // list by a specific algorithm
+    for (KmsKeyHandle h : factory.listByAlgorithm(a -> a.equals(JWSAlgorithm.ES256))) {
+        // TODO: do something smart here
+    }
+}
+```
+
+## How-to: Create a JWK set for a set of public keys
+
+```java
+try (KeyManagementServiceClient client = KeyManagementServiceClient.create()) {
+
+    // you need the resource ID of the key ring to use
+    String keyRingResourceName = "projects/you-project/locations/europe/keyRings/your-keyring";
+    
+    // the key handle factory is your key access point, and caches keys in memory for you
+    KmsKeyHandleFactory factory = KmsKeyHandleFactory.builder(client, KeyRingName.parse(keyRingResourceName))
+                    .withKeyCacheDuration(Duration.ofSeconds(60))
+                    .build();
+
+    // create a JWK set, only public keys will be included, and HMAC keys will be filtered out
+    JWKSet jwks = PublicJwkSetCreator.of(factory.list());
+}
+```
