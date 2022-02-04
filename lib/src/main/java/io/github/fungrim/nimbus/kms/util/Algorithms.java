@@ -1,25 +1,40 @@
+/**
+ * Copyright 2022 Lars J. Nilsson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.fungrim.nimbus.kms.util;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
-
 import io.github.fungrim.nimbus.jose.UncheckedJoseException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Algorithms {
-    
-    private Algorithms() { }
+
+    private Algorithms() {
+    }
 
     public static byte[] digest(byte[] cleartext, JWSAlgorithm a) throws JOSEException {
         try {
             MessageDigest md = getDigestForAlgorithm(a);
             md.update(cleartext);
             return md.digest();
-        } catch(NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new JOSEException(e.getMessage(), e);
         }
     }
@@ -30,11 +45,11 @@ public class Algorithms {
 
     public static MessageDigest getDigestForAlgorithm(JWSAlgorithm a) throws NoSuchAlgorithmException {
         String name = a.getName();
-        if(name.endsWith("256") || name.endsWith("256K")) {
+        if (name.endsWith("256") || name.endsWith("256K")) {
             return MessageDigest.getInstance("SHA-256");
-        } else if(name.endsWith("384")) {
+        } else if (name.endsWith("384")) {
             return MessageDigest.getInstance("SHA-384");
-        } else if(name.endsWith("512")) {
+        } else if (name.endsWith("512")) {
             return MessageDigest.getInstance("SHA-512");
         } else {
             throw new NoSuchAlgorithmException("Could not find message digest for algorithm: " + a);
@@ -42,35 +57,36 @@ public class Algorithms {
     }
 
     public static Curve getCurve(CryptoKeyVersion key) throws JOSEException {
-        switch(key.getAlgorithm()) {
-            case EC_SIGN_P256_SHA256:
+        switch (key.getAlgorithm()) {
+            case EC_SIGN_P256_SHA256 :
                 return Curve.P_256;
-            case EC_SIGN_P384_SHA384:
+            case EC_SIGN_P384_SHA384 :
                 return Curve.P_384;
-            case EC_SIGN_SECP256K1_SHA256:
+            case EC_SIGN_SECP256K1_SHA256 :
                 return Curve.SECP256K1;
-            case HMAC_SHA256:
-            case RSA_SIGN_PKCS1_2048_SHA256:
-            case RSA_SIGN_PKCS1_3072_SHA256:
-            case RSA_SIGN_PKCS1_4096_SHA256:
-            case RSA_SIGN_PKCS1_4096_SHA512:
-            case RSA_SIGN_PSS_2048_SHA256:
-            case RSA_SIGN_PSS_3072_SHA256:
-            case RSA_SIGN_PSS_4096_SHA256:
-            case RSA_SIGN_PSS_4096_SHA512:
-            case CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
-            case EXTERNAL_SYMMETRIC_ENCRYPTION:
-            case GOOGLE_SYMMETRIC_ENCRYPTION:
-            case RSA_DECRYPT_OAEP_2048_SHA1:
-            case RSA_DECRYPT_OAEP_2048_SHA256:
-            case RSA_DECRYPT_OAEP_3072_SHA1:
-            case RSA_DECRYPT_OAEP_3072_SHA256:
-            case RSA_DECRYPT_OAEP_4096_SHA1:
-            case RSA_DECRYPT_OAEP_4096_SHA256:
-            case RSA_DECRYPT_OAEP_4096_SHA512:
-            case UNRECOGNIZED:
-            default:
-                throw new JOSEException("Key '" + key.getName() + "' has algorithm " + key.getAlgorithm() + " and is not an EC key");
+            case HMAC_SHA256 :
+            case RSA_SIGN_PKCS1_2048_SHA256 :
+            case RSA_SIGN_PKCS1_3072_SHA256 :
+            case RSA_SIGN_PKCS1_4096_SHA256 :
+            case RSA_SIGN_PKCS1_4096_SHA512 :
+            case RSA_SIGN_PSS_2048_SHA256 :
+            case RSA_SIGN_PSS_3072_SHA256 :
+            case RSA_SIGN_PSS_4096_SHA256 :
+            case RSA_SIGN_PSS_4096_SHA512 :
+            case CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED :
+            case EXTERNAL_SYMMETRIC_ENCRYPTION :
+            case GOOGLE_SYMMETRIC_ENCRYPTION :
+            case RSA_DECRYPT_OAEP_2048_SHA1 :
+            case RSA_DECRYPT_OAEP_2048_SHA256 :
+            case RSA_DECRYPT_OAEP_3072_SHA1 :
+            case RSA_DECRYPT_OAEP_3072_SHA256 :
+            case RSA_DECRYPT_OAEP_4096_SHA1 :
+            case RSA_DECRYPT_OAEP_4096_SHA256 :
+            case RSA_DECRYPT_OAEP_4096_SHA512 :
+            case UNRECOGNIZED :
+            default :
+                throw new JOSEException(
+                        "Key '" + key.getName() + "' has algorithm " + key.getAlgorithm() + " and is not an EC key");
         }
     }
 
@@ -83,53 +99,54 @@ public class Algorithms {
     }
 
     public static JWSAlgorithm getSigningAlgorithm(CryptoKeyVersion key) throws JOSEException {
-        switch(key.getAlgorithm()) {
-            case EC_SIGN_P256_SHA256:
+        switch (key.getAlgorithm()) {
+            case EC_SIGN_P256_SHA256 :
                 return JWSAlgorithm.ES256;
-            case EC_SIGN_P384_SHA384:
+            case EC_SIGN_P384_SHA384 :
                 return JWSAlgorithm.ES384;
-            case EC_SIGN_SECP256K1_SHA256:
+            case EC_SIGN_SECP256K1_SHA256 :
                 return JWSAlgorithm.ES256K;
-            case HMAC_SHA256:
+            case HMAC_SHA256 :
                 return JWSAlgorithm.HS256;
-            case RSA_SIGN_PKCS1_2048_SHA256:
+            case RSA_SIGN_PKCS1_2048_SHA256 :
                 return JWSAlgorithm.RS256;
-            case RSA_SIGN_PKCS1_3072_SHA256:
+            case RSA_SIGN_PKCS1_3072_SHA256 :
                 return JWSAlgorithm.RS256;
-            case RSA_SIGN_PKCS1_4096_SHA256:
+            case RSA_SIGN_PKCS1_4096_SHA256 :
                 return JWSAlgorithm.RS256;
-            case RSA_SIGN_PKCS1_4096_SHA512:
+            case RSA_SIGN_PKCS1_4096_SHA512 :
                 return JWSAlgorithm.RS512;
-            case RSA_SIGN_PSS_2048_SHA256:
+            case RSA_SIGN_PSS_2048_SHA256 :
                 return JWSAlgorithm.PS256;
-            case RSA_SIGN_PSS_3072_SHA256:
+            case RSA_SIGN_PSS_3072_SHA256 :
                 return JWSAlgorithm.PS256;
-            case RSA_SIGN_PSS_4096_SHA256:
+            case RSA_SIGN_PSS_4096_SHA256 :
                 return JWSAlgorithm.PS256;
-            case RSA_SIGN_PSS_4096_SHA512:
+            case RSA_SIGN_PSS_4096_SHA512 :
                 return JWSAlgorithm.PS512;
-            case CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED:
-            case EXTERNAL_SYMMETRIC_ENCRYPTION:
-            case GOOGLE_SYMMETRIC_ENCRYPTION:
-            case RSA_DECRYPT_OAEP_2048_SHA1:
-            case RSA_DECRYPT_OAEP_2048_SHA256:
-            case RSA_DECRYPT_OAEP_3072_SHA1:
-            case RSA_DECRYPT_OAEP_3072_SHA256:
-            case RSA_DECRYPT_OAEP_4096_SHA1:
-            case RSA_DECRYPT_OAEP_4096_SHA256:
-            case RSA_DECRYPT_OAEP_4096_SHA512:
-            case UNRECOGNIZED:
-            default:
-                throw new JOSEException("Key '" + key.getName() + "' has algorithm " + key.getAlgorithm() + " which is not supported");
+            case CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED :
+            case EXTERNAL_SYMMETRIC_ENCRYPTION :
+            case GOOGLE_SYMMETRIC_ENCRYPTION :
+            case RSA_DECRYPT_OAEP_2048_SHA1 :
+            case RSA_DECRYPT_OAEP_2048_SHA256 :
+            case RSA_DECRYPT_OAEP_3072_SHA1 :
+            case RSA_DECRYPT_OAEP_3072_SHA256 :
+            case RSA_DECRYPT_OAEP_4096_SHA1 :
+            case RSA_DECRYPT_OAEP_4096_SHA256 :
+            case RSA_DECRYPT_OAEP_4096_SHA512 :
+            case UNRECOGNIZED :
+            default :
+                throw new JOSEException(
+                        "Key '" + key.getName() + "' has algorithm " + key.getAlgorithm() + " which is not supported");
         }
     }
 
     public static Curve getCurve(JWSAlgorithm alg) throws JOSEException {
-        if(alg == JWSAlgorithm.ES256) {
+        if (alg == JWSAlgorithm.ES256) {
             return Curve.P_256;
-        } else if(alg == JWSAlgorithm.ES384) {
+        } else if (alg == JWSAlgorithm.ES384) {
             return Curve.P_384;
-        } else if(alg == JWSAlgorithm.ES256K) {
+        } else if (alg == JWSAlgorithm.ES256K) {
             return Curve.SECP256K1;
         } else {
             throw new JOSEException("Could not find EC curve for algorithm: " + alg);

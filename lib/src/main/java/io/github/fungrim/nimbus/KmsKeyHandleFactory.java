@@ -1,9 +1,20 @@
+/**
+ * Copyright 2022 Lars J. Nilsson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.fungrim.nimbus;
 
-import java.time.Duration;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.cloud.kms.v1.CryptoKeyVersionName;
@@ -16,7 +27,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jwk.JWK;
-
 import io.github.fungrim.nimbus.kms.CryptoKeyCache;
 import io.github.fungrim.nimbus.kms.CryptoKeyCache.Entry;
 import io.github.fungrim.nimbus.kms.client.DefaultKmsServiceClient;
@@ -24,23 +34,31 @@ import io.github.fungrim.nimbus.kms.client.KmsServiceClient;
 import io.github.fungrim.nimbus.kms.generator.Sha256KeyIdGenerator;
 import io.github.fungrim.nimbus.kms.provider.CryptoKeySigner;
 import io.github.fungrim.nimbus.kms.provider.CryptoKeyVerifier;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * This is the main key accessor for the KMS providers. Create a new factory
  * using a {@link Builder}. You need to provide the underlying Google library
- * yourself, including authentication. 
+ * yourself, including authentication.
  * 
- * <p>This factory operates on a single key ring, which is mandatory when creating
- * the provider. 
+ * <p>
+ * This factory operates on a single key ring, which is mandatory when creating
+ * the provider.
  * 
- * <p>Disabled KMS keys, and keys that does not support signing will automatically
- * be fitlered out. 
+ * <p>
+ * Disabled KMS keys, and keys that does not support signing will automatically
+ * be fitlered out.
  * 
- * <p>The factory will cache KMS keys and associated meta-data. The default cache duration
- * is 60 minutes. 
+ * <p>
+ * The factory will cache KMS keys and associated meta-data. The default cache
+ * duration is 60 minutes.
  * 
- * <p>By default, JWT key ID:s will be generated using SHA-256 over the KMS key version 
- * resource name. 
+ * <p>
+ * By default, JWT key ID:s will be generated using SHA-256 over the KMS key
+ * version resource name.
  */
 public class KmsKeyHandleFactory {
 
@@ -58,13 +76,15 @@ public class KmsKeyHandleFactory {
         }
 
         /**
-         * Use a global key ring filter. This will be applied to all KMS accesses
-         * and can be used to pre-emptively filter out keys that should not be used. 
+         * Use a global key ring filter. This will be applied to all KMS accesses and
+         * can be used to pre-emptively filter out keys that should not be used.
          * 
-         * <p>By default, no keys are filtered out. 
+         * <p>
+         * By default, no keys are filtered out.
          * 
-         * <p>Note that disabled KMS keys, and keys that does not support signing will automatically
-         * be fitlered out without the need for a specialised filter. 
+         * <p>
+         * Note that disabled KMS keys, and keys that does not support signing will
+         * automatically be fitlered out without the need for a specialised filter.
          */
         public Builder withKeyRingFilter(Predicate<CryptoKeyVersion> disc) {
             this.disc = disc;
@@ -72,8 +92,8 @@ public class KmsKeyHandleFactory {
         }
 
         /**
-         * Set a custom key ID generator. The default generator will use SHA-256
-         * over the KMS key version resource name.  
+         * Set a custom key ID generator. The default generator will use SHA-256 over
+         * the KMS key version resource name.
          */
         public Builder withKeyIdGenerator(KeyIdGenerator gen) {
             this.gen = gen;
@@ -81,7 +101,7 @@ public class KmsKeyHandleFactory {
         }
 
         /**
-         * Specify the key cache duration. The default is 60 minutes. 
+         * Specify the key cache duration. The default is 60 minutes.
          */
         public Builder withKeyCacheDuration(Duration dur) {
             this.dur = dur;
@@ -89,7 +109,7 @@ public class KmsKeyHandleFactory {
         }
 
         /**
-         * Build the factory. 
+         * Build the factory.
          */
         public KmsKeyHandleFactory build() throws JOSEException {
             Predicate<CryptoKeyVersion> filter = disc == null ? k -> true : disc;
@@ -99,10 +119,10 @@ public class KmsKeyHandleFactory {
             CryptoKeyCache cache = new CryptoKeyCache(duration, kmsClient, generator);
             return new KmsKeyHandleFactory(kmsClient, cache);
         }
-    } 
+    }
 
     /**
-     * Create a new builder, none of the arguments may be null.  
+     * Create a new builder, none of the arguments may be null.
      */
     public static Builder builder(KeyManagementServiceClient client, KeyRingName keyRing) {
         Preconditions.checkNotNull(client);
@@ -113,16 +133,14 @@ public class KmsKeyHandleFactory {
     private final KmsServiceClient client;
     private final CryptoKeyCache cache;
 
-    private KmsKeyHandleFactory(
-            KmsServiceClient client, 
-            CryptoKeyCache cache) {
+    private KmsKeyHandleFactory(KmsServiceClient client, CryptoKeyCache cache) {
         this.client = client;
         this.cache = cache;
     }
- 
+
     /**
-     * Get a key by name. If the key is not a signing key this method
-     * will throw an exception.  
+     * Get a key by name. If the key is not a signing key this method will throw an
+     * exception.
      */
     public Optional<KmsKeyHandle> get(CryptoKeyVersionName name) throws JOSEException {
         Preconditions.checkNotNull(name);
@@ -130,7 +148,7 @@ public class KmsKeyHandleFactory {
     }
 
     /**
-     * Get a key by JWT ID.  
+     * Get a key by JWT ID.
      */
     public Optional<KmsKeyHandle> get(String keyId) throws JOSEException {
         Preconditions.checkNotNull(keyId);
@@ -139,8 +157,8 @@ public class KmsKeyHandleFactory {
 
     /**
      * Get a key for a given algorithm. If there are multiple elegible keys for the
-     * algorithm, the first returned by the KMS client will be used. Only the latest 
-     * version of a key will be returned. 
+     * algorithm, the first returned by the KMS client will be used. Only the latest
+     * version of a key will be returned.
      */
     public Optional<KmsKeyHandle> find(JWSAlgorithm alg) throws JOSEException {
         Preconditions.checkNotNull(alg);
@@ -148,7 +166,7 @@ public class KmsKeyHandleFactory {
     }
 
     /**
-     * List all keys.  
+     * List all keys.
      */
     public Stream<KmsKeyHandle> list() throws JOSEException {
         return list(k -> true);
@@ -157,7 +175,7 @@ public class KmsKeyHandleFactory {
     /**
      * List all keys given a key version filter.
      * 
-     * @deprecated Use {@link #listByKeyVersion(Predicate)} instead 
+     * @deprecated Use {@link #listByKeyVersion(Predicate)} instead
      */
     @Deprecated
     public Stream<KmsKeyHandle> list(Predicate<CryptoKeyVersion> filter) throws JOSEException {
@@ -180,8 +198,6 @@ public class KmsKeyHandleFactory {
         return cache.listByAlgorithm(filter).map(this::toHandle);
     }
 
-    
-
     /// --- PRIVATE --- ///
 
     private KmsKeyHandle toHandle(Entry e) {
@@ -191,7 +207,7 @@ public class KmsKeyHandleFactory {
     private class Handle implements KmsKeyHandle {
 
         private final Entry entry;
-    
+
         private Handle(Entry entry) {
             this.entry = entry;
         }
@@ -202,7 +218,7 @@ public class KmsKeyHandleFactory {
         }
 
         @Override
-        public JWSAlgorithm getAlgorithm()  {
+        public JWSAlgorithm getAlgorithm() {
             return entry.getAlgorithm();
         }
 
@@ -223,9 +239,9 @@ public class KmsKeyHandleFactory {
 
         @Override
         public Optional<JWK> getPublicKey() throws JOSEException {
-            return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm()) 
-                        ? Optional.empty() 
-                        : Optional.of(entry.getPublicKeyJWK(client));
+            return JWSAlgorithm.Family.HMAC_SHA.contains(getAlgorithm())
+                    ? Optional.empty()
+                    : Optional.of(entry.getPublicKeyJWK(client));
         }
 
         @Override
