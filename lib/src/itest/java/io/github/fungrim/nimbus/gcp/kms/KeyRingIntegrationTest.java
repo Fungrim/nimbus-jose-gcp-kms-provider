@@ -16,8 +16,6 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import org.junit.jupiter.api.Assertions;
-
 import io.github.fungrim.nimbus.KeyIdGenerator;
 import io.github.fungrim.nimbus.KmsKeyHandle;
 import io.github.fungrim.nimbus.KmsKeyHandleFactory;
@@ -46,6 +44,7 @@ public class KeyRingIntegrationTest {
                 .withKeyIdGenerator(gen)
                 .build();
 
+            // test signing with all
             for (KmsKeyHandle h : provider.list().collect(Collectors.toList())) {
                 if(h.getAlgorithm() == JWSAlgorithm.ES256K) {
                     continue;
@@ -53,6 +52,10 @@ public class KeyRingIntegrationTest {
                 testSignedJWT(h);
                 testSignedJWS(h);
             }
+
+            // test listing by algorithm
+            System.out.println("Found " + provider.listByAlgorithm(a -> JWSAlgorithm.ES256.equals(a)).count() + " ES256 keys");
+            System.out.println("Found " + provider.listByAlgorithm(a -> JWSAlgorithm.RS256.equals(a)).count() + " RS256 keys");
         }
     }
 
@@ -69,7 +72,9 @@ public class KeyRingIntegrationTest {
         System.out.println("JWK - " + h.getPublicKey().map(k -> k.toJSONString()).orElse("n/a"));
         jwsObject = JWSObject.parse(token);
         // check
-        Assertions.assertTrue(jwsObject.verify(h.getVerifier()));
+        if(!jwsObject.verify(h.getVerifier())) {
+            throw new IllegalStateException("Failed to verify JWS signature using key " + h.getKeyId());
+        }
     }
 
     private static void testSignedJWT(KmsKeyHandle h) throws Exception {
@@ -90,6 +95,8 @@ public class KeyRingIntegrationTest {
         System.out.println("JWK - " + h.getPublicKey().map(k -> k.toJSONString()).orElse("n/a"));
         signedJWT = SignedJWT.parse(token);
         // check
-        Assertions.assertTrue(signedJWT.verify(h.getVerifier()));
+        if(!signedJWT.verify(h.getVerifier())) {
+            throw new IllegalStateException("Failed to verify JWT signature using key " + h.getKeyId());
+        }
     }
 }
